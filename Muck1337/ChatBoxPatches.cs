@@ -10,6 +10,12 @@ namespace Muck1337
 	{
 		static bool Prefix(ChatBox __instance, string message)
 		{
+		    /*
+		     * Here I redefine the whole method because the original method (according to dnspy) ends in
+		     * a way that makes adding more commands through a Postfix impossible. Regardless, using
+		     * switch/case is this case would be favourable over using multiple if-statements.
+		     */
+		     
 			string color = "#" + ColorUtility.ToHtmlStringRGB(PrivateFind.GetValue<Color>(__instance, "console"));
 			string text = message.Substring(1);
 			List<string> cmd = new List<string>(text.Split(' '));
@@ -102,7 +108,7 @@ namespace Muck1337
 							{
 								"<color=",
 								color,
-								">Spawning item: ",
+								">Spawning powerup: ",
 								keyValuePair.Key,
 								"<color=white>"
 							}), "");
