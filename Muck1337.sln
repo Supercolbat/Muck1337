@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Muck1337", "Muck1337\Muck1337.csproj", "{D27008D2-9FE5-48A6-9F72-1BC8ED61A4C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D27008D2-9FE5-48A6-9F72-1BC8ED61A4C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D27008D2-9FE5-48A6-9F72-1BC8ED61A4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D27008D2-9FE5-48A6-9F72-1BC8ED61A4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D27008D2-9FE5-48A6-9F72-1BC8ED61A4C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

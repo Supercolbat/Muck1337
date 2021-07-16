@@ -1,0 +1,9 @@
+Muck1337/bin/
+Muck1337/obj/
+Libraries/
+.idea/
+Muck1337.sln.DotSettings.user
+
+# a script that copies the built dll into
+# my muck folder
+update.sh
