@@ -19,9 +19,9 @@ namespace Muck1337
          */
         [HarmonyPatch("CanUseAchievements")]
         [HarmonyPostfix]
-        static bool CanUseAchievements_Postfix(ref bool __return)
+        static bool CanUseAchievements_Postfix(ref bool __result)
         {
-            __return = false;
+            __result = false;
             return false;
         }
 
