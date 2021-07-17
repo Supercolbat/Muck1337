@@ -9,7 +9,7 @@ namespace Muck1337
     {
         private const string PluginGuid = "me.supercolbat.muck1337";
         private const string PluginName = "Muck1337";
-        private const string PluginVersion = "0.1.1";
+        private const string PluginVersion = "0.2.0";
 
         public static Muck1337Plugin Instance;
         private Harmony harmony;
