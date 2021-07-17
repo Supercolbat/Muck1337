@@ -1,7 +1,7 @@
 # Muck1337
-Muck1337 is a utility mod ("hack" if you really want to call it that) for the game, [Muck](https://store.steampowered.com/app/1625450/Muck/), a game made by [Dani](https://store.steampowered.com/search/?developer=Dani)[Dev](https://www.youtube.com/channel/UCIabPXjvT5BVTxRDPCBBOOQ)
+Muck1337 is a utility mod for the game [Muck](https://store.steampowered.com/app/1625450/Muck/), a game made by [Dani](https://store.steampowered.com/search/?developer=Dani)[Dev](https://www.youtube.com/channel/UCIabPXjvT5BVTxRDPCBBOOQ).
 
-## :wrench: Installation
+## :package: Installation
 Before downloading the mod, you first need to set up [BepInEx](https://github.com/BepInEx/BepInEx). This process is well documented on the [BepInEx wiki](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_mono.html).
 
 > **TIP**: To find Muck's root folder, go into Steam, right click on Muck from your Library, and click on `Manage > Browse local files`. That will open up the folder using your default file browser. I recommend that you create a copy of this folder so that you get easy access to both the vanilla and modded Mucks.
