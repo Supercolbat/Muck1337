@@ -3,7 +3,7 @@ using HarmonyLib;
 
 namespace Muck1337.Utils
 {
-    public static class PrivateFind
+    public static class PrivateFinder
     {
         /*
          * Hippity-hoppity,

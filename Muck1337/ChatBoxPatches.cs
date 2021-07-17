@@ -5,29 +5,36 @@ using Muck1337.Utils;
 
 namespace Muck1337
 {
-	[HarmonyPatch(typeof(ChatBox), "ChatCommand")]
-	class ChatCommandPatch
-	{
-		static bool Prefix(ChatBox __instance, string message)
-		{
-		    /*
-		     * Here I redefine the whole method because the original method (according to dnspy) ends in
-		     * a way that makes adding more commands through a Postfix impossible. Regardless, using
-		     * switch/case is this case would be favourable over using multiple if-statements.
-		     */
-		     
-			string color = "#" + ColorUtility.ToHtmlStringRGB(PrivateFind.GetValue<Color>(__instance, "console"));
+    [HarmonyPatch(typeof(ChatBox))]
+    class ChatBox_Patches
+    {
+	    /*
+	     * ===============
+	     *  Chat Commands
+	     * ===============
+         */
+        [HarmonyPatch("ChatCommand")]
+        [HarmonyPrefix]
+		static bool ChatCommand_Prefix(ChatBox __instance, string message)
+		{		     
+			string colorConsole = "#" + ColorUtility.ToHtmlStringRGB(PrivateFinder.GetValue<Color>(__instance, "console"));
 			string text = message.Substring(1);
 			List<string> cmd = new List<string>(text.Split(' '));
 			
-			PrivateFind.CallMethod(__instance, "ClearMessage");
+			PrivateFinder.CallMethod(__instance, "ClearMessage");
 			
 			switch (cmd[0])
 			{
+				/*******************
+				 * Modded commands *
+				 *******************/
+				
 				/*
-				 * Modded commands
+				 * usage: /dupe
+				 * duplicate the player's whole inventory
 				 */
 				case "dupe":
+					// loops over every inventory cell in player and drops it without updating the cell
 					foreach (InventoryCell inventoryCell in InventoryUI.Instance.allCells)
 					{
 						if (!(inventoryCell.currentItem == null))
@@ -35,124 +42,264 @@ namespace Muck1337
 							InventoryUI.Instance.DropItemIntoWorld(inventoryCell.currentItem);
 						}
 					}
-					break;
+					return false;
 				
+				/*
+				 * usage: /tp <username>
+				 * teleport to a player
+				 */
 				case "tp":
-					PlayerInput.Instance.transform.position =
-						Object.FindObjectsOfType<OnlinePlayer>()[0].transform.position;
-					break;
-				
-				case "pickup":
-					PickupInteract[] array = Object.FindObjectsOfType<PickupInteract>();
-					for (int j = 0; j < array.Length; j++)
+					string targetUsernameForTP = string.Join(" ", cmd.GetRange( 1, cmd.Count - 1)).ToLower();
+					
+					// loop through all the players connected to the server until one matches targetUsernameForTP
+					foreach (Client c in Server.clients.Values)
 					{
-						array[j].Interact();
+						if (c.player.username == targetUsernameForTP)
+						{
+							__instance.AppendMessage(-1, "<color=" + colorConsole + ">Teleporting to" + c.player.username + "<color=white>", "Muck1337");
+							// set the player position as the matched player's position
+							PlayerInput.Instance.transform.position = c.player.pos;
+							return false;
+						}
 					}
-					break;
+					__instance.AppendMessage(-1, "<color=red>Could not find a player by the username of '" + targetUsernameForTP + "'<color=white>", "Muck1337");
+					return false;
 				
-				case "id":
-					__instance.AppendMessage(-1, string.Concat(new object[]
+				/*
+				 * usage: /pickup
+				 * picks up all interactable items
+				 */
+				case "pickup":
+					foreach (PickupInteract pickupInteract in Object.FindObjectsOfType<PickupInteract>())
 					{
-						"<color=",
-						color,
-						">ID: ",
-						Hotbar.Instance.currentItem.id,
-						"<color=white>"
-					}), "");
-					break;
-				
-				case "item":
-					int itemAmount;
-					string itemArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out itemAmount) ? 2 : 1))).ToLower();
+						pickupInteract.Interact();
+					}
 
+					// wont teleport items to us :((
+					foreach (Item item in Object.FindObjectsOfType<Item>())
+					{
+						item.item.prefab.transform.position = PlayerInput.Instance.transform.position;
+					}
+					return false;
+				
+				/*
+				 * usage: /openchests
+				 * opens all chests
+				 */
+				case "openchests":
+					foreach (ChestInteract chestInteract in Object.FindObjectsOfType<ChestInteract>())
+					{
+						chestInteract.Interact();
+					}
+					return false;
+				
+				/*
+				 * usage: /item <item name> (amount)
+				 * spawns item in player's inventory or drops it if it's full
+				 */
+				case "item":
+					int itemAmount = 1;
+					
+					// if the last element in cmd is an integer, then the count for the GetRange will be 'cmd.Count - 2'
+					// if not, the count will be 'cmd.Count - 1'
+					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out itemAmount) ? 2 : 1))).ToLower();
+
+					// cycle through all the defined items until one matches our query
 					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
 					{
-						if (inventoryItem.name.ToLower() == itemArg)
+						if (inventoryItem.name.ToLower() == itemQuery)
 						{
 							__instance.AppendMessage(-1, string.Concat(new string[]
 							{
 								"<color=",
-								color,
+								colorConsole,
 								">Spawning item: ",
 								inventoryItem.name,
 								"<color=white>"
-							}), "");
+							}), "Muck1337");
 							
+							// if the player's inventory is full, drop the item into the world and return false
 							if (InventoryUI.Instance.IsInventoryFull())
 							{
 								InventoryUI.Instance.DropItemIntoWorld(inventoryItem);
-								break;
+								return false;
 							}
-
+							
+							// sets the first empty inventory cell to the chosen item
 							foreach (InventoryCell inventoryCell in InventoryUI.Instance.allCells)
 							{
 								if (inventoryCell.currentItem == null)
 								{
 									inventoryCell.currentItem = inventoryItem;
+									if (inventoryCell.currentItem.max > itemAmount)
+									    inventoryCell.currentItem.max = itemAmount;
+									inventoryCell.currentItem.amount = itemAmount;
 									inventoryCell.UpdateCell();
-									break;
+									return false;
 								}
 							}
 						}
 					}
-					break;
+					return false;
 				
-				case "powerup":
-					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out var powerupAmount) ? 2 : 1))).ToLower();
+				/*
+				 * usage: /itemuser <username> <item name> (amount)
+				 * Spawns item at a player's location
+				 */
+				case "itemuser":
+					int itemuserAmount = 1;
+					string itemuserQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out itemuserAmount) ? 2 : 1))).ToLower();
+					Player targetPlayerForItem = null;
 
-					foreach (KeyValuePair<string, int> keyValuePair in ItemManager.Instance.stringToPowerupId)
+					foreach (Client c in Server.clients.Values)
 					{
-						if (keyValuePair.Key.ToLower() == powerupArg)
+						if (c.player.username == cmd[1])
+						{
+							targetPlayerForItem = c.player;
+							break;
+						}
+					}
+
+					if (targetPlayerForItem == null)
+					{
+						__instance.AppendMessage(-1, string.Concat(new string[]
+						{
+							"<color=red>Could not find player by the username of '",
+							cmd[1],
+							"'<color=white>"
+						}), "Muck1337");
+						return false;
+					}
+
+					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
+					{
+						if (inventoryItem.name.ToLower() == itemuserQuery)
 						{
 							__instance.AppendMessage(-1, string.Concat(new string[]
 							{
 								"<color=",
-								color,
-								">Spawning powerup: ",
-								keyValuePair.Key,
-								"<color=white>"
-							}), "");
+								colorConsole,
+								">Spawning item '",
+								inventoryItem.name,
+								"' at user '",
+								targetPlayerForItem.username,
+								"'<color=white>"
+							}), "Muck1337");
+							
+							ItemManager.Instance.DropItemAtPosition(inventoryItem.id, itemuserAmount, targetPlayerForItem.pos, ItemManager.Instance.GetNextId());
+							return false;
+						}
+					}
+					return false;
+				
+				/*
+				 * usage: /powerup <powerup name> (amount)
+				 * increments the stated powerup for the player by the given amount
+				 */
+				case "powerup":
+					int powerupAmount = 1;
+					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out powerupAmount) ? 2 : 1))).ToLower();
 
-							int[] powerups = PrivateFind.GetValue<int[]>(PowerupInventory.Instance, "powerups");
+					foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
+					{
+						if (powerupPair.Key.ToLower() == powerupArg)
+						{
+							__instance.AppendMessage(-1, string.Concat(new string[]
+							{
+								"<color=",
+								colorConsole,
+								">Spawning powerup: ",
+								powerupPair.Key,
+								"<color=white>"
+							}), "Muck1337");
+
+							int[] powerups = PrivateFinder.GetValue<int[]>(PowerupInventory.Instance, "powerups");
 							
 							for (int i = 0; i < powerupAmount; i++)
 							{
-								powerups[keyValuePair.Value]++;
-								PrivateFind.SetValue<int[]>(PowerupInventory.Instance, "powerups", powerups);
-								UiEvents.Instance.AddPowerup(ItemManager.Instance.allPowerups[keyValuePair.Value]);
+								powerups[powerupPair.Value]++;
+								PrivateFinder.SetValue<int[]>(PowerupInventory.Instance, "powerups", powerups);
+								UiEvents.Instance.AddPowerup(ItemManager.Instance.allPowerups[powerupPair.Value]);
 								PlayerStatus.Instance.UpdateStats();
-								PowerupUI.Instance.AddPowerup(keyValuePair.Value);
+								PowerupUI.Instance.AddPowerup(powerupPair.Value);
 							}
 						}
 					}
-					break;
+					return false;
 				
-				case "nick":
-					Server.clients[LocalClient.instance.myId].player.username =
-						string.Join(" ", cmd.GetRange(1, cmd.Count - 1));
-					break;
-				
-				case "leaveisland":
-					Boat.Instance.LeaveIsland();
-					break;
-				
-				case "clip":
-					if (cmd[1] == "off")
+				/*
+				 * usage: /powerupuser <username> <item name> (amount)
+				 * Spawns powerup at a player's location
+				 */
+				case "powerupuser":
+					int powerupuserAmount = 1;
+					string powerupuserArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out powerupuserAmount) ? 2 : 1))).ToLower();
+
+					Player targetPlayerForPowerup = null;
+
+					foreach (Client c in Server.clients.Values)
 					{
-						PlayerMovement.Instance.GetPlayerCollider().enabled = false;
-						break;
+						if (c.player.username == cmd[1])
+						{
+							targetPlayerForPowerup = c.player;
+							break;
+						}
 					}
 
-					if (cmd[1] == "on")
+					if (targetPlayerForPowerup == null)
 					{
-						PlayerMovement.Instance.GetPlayerCollider().enabled = true;
+						__instance.AppendMessage(-1, string.Concat(new string[]
+						{
+							"<color=red>Could not find player by the username of '",
+							cmd[1],
+							"'<color=white>"
+						}), "Muck1337");
+						return false;
 					}
-					break;
+					
+					foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
+					{
+						if (powerupPair.Key.ToLower() == powerupuserArg)
+						{
+							__instance.AppendMessage(-1, string.Concat(new string[]
+							{
+								"<color=",
+								colorConsole,
+								">Spawning powerup: ",
+								powerupPair.Key,
+								"<color=white>"
+							}), "Muck1337");
+
+							for (int i = 0; i < powerupuserAmount; i++)
+							{
+								ItemManager.Instance.DropPowerupAtPosition(powerupPair.Value, targetPlayerForPowerup.pos, ItemManager.Instance.GetNextId());
+							}
+						}
+					}
+					return false;
 				
+				/*
+				 * usage: /sail
+				 * starts the boat rising & final boss event
+				 */
+				case "sail":
+					Boat.Instance.LeaveIsland();
+					return false;
+				
+				/*
+				 * usage: /hell
+				 * activates all the boss, guardian, and combat shrines
+				 */
 				case "hell":
 					ShrineBoss[] bossShrines = Object.FindObjectsOfType<ShrineBoss>();
 					ShrineGuardian[] guardianShrines = Object.FindObjectsOfType<ShrineGuardian>();
 					ShrineInteractable[] combatShrines = Object.FindObjectsOfType<ShrineInteractable>();
+
+					if (bossShrines.Length == 0 && guardianShrines.Length == 0 && combatShrines.Length == 0)
+					{
+						__instance.AppendMessage(-1, "<color=red>Hell has already been unleashed!<color=white>", "Muck1337");
+						return false;
+					}
 					foreach (var s in bossShrines)
 					{
 						s.Interact();
@@ -168,48 +315,53 @@ namespace Muck1337
 						s.Interact();
 					}
 
-					__instance.AppendMessage(-1, "<color=red>Welcome to hell...<color=white>", "");
-					break;
+					__instance.AppendMessage(-1, "<color=red>HELL HAS BEEN UNLEASHED!<color=white>", "Muck1337");
+					return false;
 				
 				/*
-				 * Default commands
+				 * usage: /killmobs
+				 * kills all mobs
 				 */
+				case "killmobs":
+					foreach (HitableMob hitableMob in Object.FindObjectsOfType<HitableMob>())
+					{
+						hitableMob.Hit(int.MaxValue, int.MaxValue, (int)HitEffect.Normal, hitableMob.mob.transform.position);
+					}
+					return false;
 				
-				case "seed":
-					int seed = GameManager.gameSettings.Seed;
+				
+				/*********************************
+				 * Development commands          *
+				 * at the bottom for easy access *
+				 *********************************/
+				
+				/*
+				 * usage: /id
+				 * returns the id of the held item
+				 */
+				case "id":
+					if (Hotbar.Instance.currentItem != null)
+					{
+						__instance.AppendMessage(-1, string.Concat(new object[]
+						{
+							"<color=",
+							colorConsole,
+							">ID: ",
+							Hotbar.Instance.currentItem.id,
+							"<color=white>"
+						}), "Muck1337");
+						return false;
+					}
 					__instance.AppendMessage(-1, string.Concat(new object[]
 					{
 						"<color=",
-						color,
-						">Seed: ",
-						seed,
-						" (copied to clipboard)<color=white>"
-					}), "");
-					GUIUtility.systemCopyBuffer = string.Concat(seed);
-					break;
+						colorConsole,
+						">ID: null<color=white>"
+					}), "Muck1337");
+					return false;
 				
-				case "ping":
-					__instance.AppendMessage(-1, "<color=" + color + ">pong<color=white>", "");
-					break;
-				
-				case "debug":
-					DebugNet.Instance.ToggleConsole();
-					break;
-				
-				case "kill":
-					PlayerStatus.Instance.Damage(0, 0, true);
-					break;
-				
-				/*
-				 * Testing command
-				 * at the bottom for easy access
-				 */
 				case "test":
-					foreach (Mob mob in MobManager.Instance.mobs.Values)
-					{
-						MobManager.Instance.RemoveMob(mob.id);
-					}
-					break;
+					return false;
 			}
 
 			return true;

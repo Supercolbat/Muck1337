@@ -1,14 +1,46 @@
 using HarmonyLib;
+using JetBrains.Annotations;
+using UnityEngine.EventSystems;
 
 namespace Muck1337
 {
-    [HarmonyPatch(typeof(InventoryUI), "GetMoney")]
-    class GetMoneyPatch
+    [HarmonyPatch(typeof(InventoryUI))]
+    class InventoryUIPatches
     {
-        static bool Prefix(ref int __result)
+        /*
+         * =================
+         *  Unlimited coins
+         * =================
+         *
+         * 2021 free no virus no human verification no scam no survey
+         */
+        [HarmonyPatch("GetMoney")]
+        [HarmonyPrefix]
+        static bool GetMoney_Prefix(ref int __result)
         {
             __result = int.MaxValue;
             return false;
+        }
+        
+        /*
+         * =====================
+         *  Middle click duping
+         * =====================
+         */
+        [HarmonyPatch("DropItem")]
+        [HarmonyPrefix]
+        static bool DropItem_Prefix(InventoryUI __instance, [CanBeNull] PointerEventData eventData)
+        {
+            if (__instance.currentMouseItem == null)
+                return false;
+
+            if (eventData != null && eventData.button == PointerEventData.InputButton.Middle)
+            {
+                __instance.DropItemIntoWorld(__instance.currentMouseItem);
+                return false;
+            }
+
+            return true;
         }
     }
 }
