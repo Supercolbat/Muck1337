@@ -2,7 +2,7 @@
 Muck1337 is a utility mod for the game [Muck](https://store.steampowered.com/app/1625450/Muck/), a game made by [Dani](https://store.steampowered.com/search/?developer=Dani)[Dev](https://www.youtube.com/channel/UCIabPXjvT5BVTxRDPCBBOOQ).
 
 ## :package: Installation
-Before downloading the mod, you first need to set up [BepInEx](https://github.com/BepInEx/BepInEx). This process is well documented on the [BepInEx wiki](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_mono.html).
+Before downloading the mod, you first need to set up BepInEx. This process is well documented on the [BepInEx wiki](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_mono.html).
 
 > **TIP**: To find Muck's root folder, go into Steam, right click on Muck from your Library, and click on `Manage > Browse local files`. That will open up the folder using your default file browser. I recommend that you create a copy of this folder so that you get easy access to both the vanilla and modded Mucks.
 
@@ -12,9 +12,11 @@ Go to the [latest release](https://github.com/Supercolbat/Muck1337/releases/late
 
 ## :wrench: Compiling
 **Prerequisites**
+
 Depending on your platform, you will need to download either the [.NET Framework](https://dotnet.microsoft.com/download/dotnet) (Windows) or the [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/install/linux) (Unix-based systems).
 
 **Gathering Resources**
+
 Clone the repository either by downloading a .zip archive of it and extracting it or by using the `git` tool in the terminal.
 ```
 git clone https://github.com/Supercolbat/Muck1337
@@ -27,9 +29,13 @@ These DLLs can be found inside of Muck's game folder. Navigate to `Muck_Data/Man
 
 * `Assembly-CSharp.dll`
 *  `UnityEngine.dll`
+*  `UnityEngine.AudioModule.dll`
 *  `UnityEngine.CoreModule.dll`
 *  `UnityEngine.IMGUIModule.dll`
+*  `UnityEngine.InputLegacyModule.dll`
+*  `UnityEngine.ParticleSystemModule.dll`
 *  `UnityEngine.PhysicsModule.dll`
+*  `UnityEngine.UI.dll`
 
 **BepInEx DLLs**
 
