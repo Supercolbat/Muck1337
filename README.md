@@ -23,7 +23,7 @@ git clone https://github.com/Supercolbat/Muck1337
 ```
 From there, go inside the new `Muck1337` directory and create a folder called `Libraries`. The DLLs that you will drop into here are the following:
 
-**Muck DLLs**
+**Game DLLs**
 
 These DLLs can be found inside of Muck's game folder. Navigate to `Muck_Data/Managed/` and you'll find all the dlls you will need.
 
