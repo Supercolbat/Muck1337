@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Muck1337
 {
     [HarmonyPatch(typeof(PlayerMovement))]
-    public class PlayerMovementPatches
+    class PlayerMovementPatches
     {
         /*
          * ================

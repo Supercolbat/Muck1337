@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace Muck1337
 {
     [HarmonyPatch(typeof(PlayerStatus))]
-    public class PlayerStatusPatches
+    class PlayerStatusPatches
     {
         /*
          * =========================
@@ -83,7 +83,6 @@ namespace Muck1337
         [HarmonyPrefix]
         static bool Jump_Prefix(PlayerStatus __instance)
         {
-            __instance.stamina = __instance.maxStamina;
             return false;
         }
     }

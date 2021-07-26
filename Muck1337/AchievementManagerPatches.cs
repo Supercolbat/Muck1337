@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace Muck1337
 {
     [HarmonyPatch(typeof(AchievementManager))]
-    public class AchievementsManagerPatches
+    class AchievementsManagerPatches
     {
         /*
          * ======================
@@ -18,10 +18,17 @@ namespace Muck1337
          * TODO: make this read a config (or gui soon™) because i know some people want to cheat the achievements
          */
         [HarmonyPatch("CanUseAchievements")]
-        [HarmonyPostfix]
-        static bool CanUseAchievements_Postfix(ref bool __result)
+        [HarmonyPrefix]
+        static bool CanUseAchievements_Prefix(ref bool __result)
         {
             __result = false;
+            return false;
+        }
+        
+        [HarmonyPatch("AchievementChanged")]
+        [HarmonyPrefix]
+        static bool AchievementChanged_Prefix()
+        {
             return false;
         }
 
