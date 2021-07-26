@@ -1,6 +1,7 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using Muck1337.Utils;
 
 namespace Muck1337
 {
@@ -9,7 +10,7 @@ namespace Muck1337
     {
         private const string PluginGuid = "me.supercolbat.muck1337";
         private const string PluginName = "Muck1337";
-        private const string PluginVersion = "0.2.1";
+        private const string PluginVersion = "0.3.0";
 
         public static Muck1337Plugin Instance;
         private Harmony harmony;
@@ -19,6 +20,8 @@ namespace Muck1337
         {
             log = Logger;
             harmony = new Harmony(PluginGuid);
+
+            // ConfigManager.LoadConfig();
             
             harmony.PatchAll();
             log.LogInfo("[Muck1337] Mod initialized!!111one");

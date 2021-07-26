@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using HarmonyLib;
 using UnityEngine;
 using Muck1337.Utils;
@@ -9,6 +11,30 @@ namespace Muck1337
     class ChatBox_Patches
     {
 	    /*
+	     * =================================
+	     *  Add commands to prediction list
+	     * =================================
+	     */
+	    [HarmonyPatch("Awake")]
+	    [HarmonyPostfix]
+	    static void Awake_Postfix(ChatBox __instance)
+	    {
+		    __instance.commands = __instance.commands.Concat(new string[]
+		    {
+			    "dupe",
+			    "tp",
+			    "pickup",
+			    "chests",
+			    "item",
+			    "powerup",
+			    //"powerupuser",
+			    "sail",
+			    "hell",
+			    "killmobs",
+		    }).ToArray();
+	    }
+	    
+	    /*
 	     * ===============
 	     *  Chat Commands
 	     * ===============
@@ -16,10 +42,14 @@ namespace Muck1337
         [HarmonyPatch("ChatCommand")]
         [HarmonyPrefix]
 		static bool ChatCommand_Prefix(ChatBox __instance, string message)
-		{		     
-			string colorConsole = "#" + ColorUtility.ToHtmlStringRGB(PrivateFinder.GetValue<Color>(__instance, "console"));
-			string text = message.Substring(1);
-			List<string> cmd = new List<string>(text.Split(' '));
+		{
+			if (message.Length <= 0)
+			{
+				return false;
+			}
+			
+			string colorConsole = "#" + ColorUtility.ToHtmlStringRGB(PrivateFinder.GetValue<Color>(__instance, "console"));;
+			List<string> cmd = new List<string>(message.Substring(1).Split(' '));
 			
 			PrivateFinder.CallMethod(__instance, "ClearMessage");
 			
@@ -49,24 +79,27 @@ namespace Muck1337
 				 * teleport to a player
 				 */
 				case "tp":
-					string targetUsernameForTP = string.Join(" ", cmd.GetRange( 1, cmd.Count - 1)).ToLower();
+					string targetUsernameForTp = string.Join(" ", cmd.GetRange( 1, cmd.Count - 1)).ToLower();
 					
 					// loop through all the players connected to the server until one matches targetUsernameForTP
-					foreach (Client c in Server.clients.Values)
+					foreach (Client client in Server.clients.Values)
 					{
-						if (c.player.username == targetUsernameForTP)
+						if (client == null || client.player == null)
+							continue;
+						
+						if (client.player.username.ToLower() == targetUsernameForTp)
 						{
-							__instance.AppendMessage(-1, "<color=" + colorConsole + ">Teleporting to" + c.player.username + "<color=white>", "Muck1337");
+							__instance.AppendMessage(-1, "<color=" + colorConsole + ">Teleporting to " + client.player.username + "<color=white>", "Muck1337");
 							// set the player position as the matched player's position
-							PlayerInput.Instance.transform.position = c.player.pos;
+							PlayerInput.Instance.transform.position = client.player.pos;
 							return false;
 						}
 					}
-					__instance.AppendMessage(-1, "<color=red>Could not find a player by the username of '" + targetUsernameForTP + "'<color=white>", "Muck1337");
+					__instance.AppendMessage(-1, "<color=red>Could not find a player by the username of '" + targetUsernameForTp + "'<color=white>", "Muck1337");
 					return false;
 				
 				/*
-				 * usage: /pickup
+				 * usage: /pickup ([items, powerups])
 				 * picks up all interactable items
 				 */
 				case "pickup":
@@ -74,22 +107,26 @@ namespace Muck1337
 					{
 						pickupInteract.Interact();
 					}
-
-					// wont teleport items to us :((
+					
 					foreach (Item item in Object.FindObjectsOfType<Item>())
 					{
-						item.item.prefab.transform.position = PlayerInput.Instance.transform.position;
+						if (cmd[1] == "items" && item.item != null)
+							item.transform.position = PlayerInput.Instance.transform.position;
+						else if (cmd[1] == "powerups" && item.powerup != null)
+						    item.transform.position = PlayerInput.Instance.transform.position; 
+						else
+							item.transform.position = PlayerInput.Instance.transform.position;
 					}
 					return false;
 				
 				/*
-				 * usage: /openchests
+				 * usage: /chests
 				 * opens all chests
 				 */
-				case "openchests":
-					foreach (ChestInteract chestInteract in Object.FindObjectsOfType<ChestInteract>())
+				case "chests":
+					foreach (LootContainerInteract lootContainerInteract in Object.FindObjectsOfType<LootContainerInteract>())
 					{
-						chestInteract.Interact();
+						lootContainerInteract.Interact();
 					}
 					return false;
 				
@@ -98,11 +135,11 @@ namespace Muck1337
 				 * spawns item in player's inventory or drops it if it's full
 				 */
 				case "item":
-					int itemAmount = 1;
-					
 					// if the last element in cmd is an integer, then the count for the GetRange will be 'cmd.Count - 2'
 					// if not, the count will be 'cmd.Count - 1'
-					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out itemAmount) ? 2 : 1))).ToLower();
+					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out int itemAmount) ? 2 : 1))).ToLower();
+					if (itemAmount == 0)
+						itemAmount = 1;
 
 					// cycle through all the defined items until one matches our query
 					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
@@ -143,56 +180,6 @@ namespace Muck1337
 					return false;
 				
 				/*
-				 * usage: /itemuser <username> <item name> (amount)
-				 * Spawns item at a player's location
-				 */
-				case "itemuser":
-					int itemuserAmount = 1;
-					string itemuserQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out itemuserAmount) ? 2 : 1))).ToLower();
-					Player targetPlayerForItem = null;
-
-					foreach (Client c in Server.clients.Values)
-					{
-						if (c.player.username == cmd[1])
-						{
-							targetPlayerForItem = c.player;
-							break;
-						}
-					}
-
-					if (targetPlayerForItem == null)
-					{
-						__instance.AppendMessage(-1, string.Concat(new string[]
-						{
-							"<color=red>Could not find player by the username of '",
-							cmd[1],
-							"'<color=white>"
-						}), "Muck1337");
-						return false;
-					}
-
-					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
-					{
-						if (inventoryItem.name.ToLower() == itemuserQuery)
-						{
-							__instance.AppendMessage(-1, string.Concat(new string[]
-							{
-								"<color=",
-								colorConsole,
-								">Spawning item '",
-								inventoryItem.name,
-								"' at user '",
-								targetPlayerForItem.username,
-								"'<color=white>"
-							}), "Muck1337");
-							
-							ItemManager.Instance.DropItemAtPosition(inventoryItem.id, itemuserAmount, targetPlayerForItem.pos, ItemManager.Instance.GetNextId());
-							return false;
-						}
-					}
-					return false;
-				
-				/*
 				 * usage: /powerup <powerup name> (amount)
 				 * increments the stated powerup for the player by the given amount
 				 */
@@ -222,57 +209,6 @@ namespace Muck1337
 								UiEvents.Instance.AddPowerup(ItemManager.Instance.allPowerups[powerupPair.Value]);
 								PlayerStatus.Instance.UpdateStats();
 								PowerupUI.Instance.AddPowerup(powerupPair.Value);
-							}
-						}
-					}
-					return false;
-				
-				/*
-				 * usage: /powerupuser <username> <item name> (amount)
-				 * Spawns powerup at a player's location
-				 */
-				case "powerupuser":
-					int powerupuserAmount = 1;
-					string powerupuserArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out powerupuserAmount) ? 2 : 1))).ToLower();
-
-					Player targetPlayerForPowerup = null;
-
-					foreach (Client c in Server.clients.Values)
-					{
-						if (c.player.username == cmd[1])
-						{
-							targetPlayerForPowerup = c.player;
-							break;
-						}
-					}
-
-					if (targetPlayerForPowerup == null)
-					{
-						__instance.AppendMessage(-1, string.Concat(new string[]
-						{
-							"<color=red>Could not find player by the username of '",
-							cmd[1],
-							"'<color=white>"
-						}), "Muck1337");
-						return false;
-					}
-					
-					foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
-					{
-						if (powerupPair.Key.ToLower() == powerupuserArg)
-						{
-							__instance.AppendMessage(-1, string.Concat(new string[]
-							{
-								"<color=",
-								colorConsole,
-								">Spawning powerup: ",
-								powerupPair.Key,
-								"<color=white>"
-							}), "Muck1337");
-
-							for (int i = 0; i < powerupuserAmount; i++)
-							{
-								ItemManager.Instance.DropPowerupAtPosition(powerupPair.Value, targetPlayerForPowerup.pos, ItemManager.Instance.GetNextId());
 							}
 						}
 					}
@@ -361,6 +297,13 @@ namespace Muck1337
 					return false;
 				
 				case "test":
+					foreach (Client client in Server.clients.Values)
+					{
+						if (client.id != LocalClient.instance.myId)
+						{
+							client.Disconnect();
+						}
+					}
 					return false;
 			}
 

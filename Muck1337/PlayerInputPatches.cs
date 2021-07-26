@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Muck1337
 {
     [HarmonyPatch(typeof(PlayerInput))]
-    public class PlayerInputPatches
+    class PlayerInputPatches
     {
         private static Vector3 flightDirection;
         private static float flightSpeed;
