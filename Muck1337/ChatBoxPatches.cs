@@ -64,6 +64,7 @@ namespace Muck1337
 				 * duplicate the player's whole inventory
 				 */
 				case "dupe":
+				case "d":
 					// loops over every inventory cell in player and drops it without updating the cell
 					foreach (InventoryCell inventoryCell in InventoryUI.Instance.allCells)
 					{
@@ -103,6 +104,7 @@ namespace Muck1337
 				 * picks up all interactable items
 				 */
 				case "pickup":
+				case "pick":
 					foreach (PickupInteract pickupInteract in Object.FindObjectsOfType<PickupInteract>())
 					{
 						pickupInteract.Interact();
@@ -110,7 +112,7 @@ namespace Muck1337
 					
 					foreach (Item item in Object.FindObjectsOfType<Item>())
 					{
-						if (cmd[1] == "items" && item.item != null)
+						if (cmd[1] == "items" && item.powerup == null)
 							item.transform.position = PlayerInput.Instance.transform.position;
 						else if (cmd[1] == "powerups" && item.powerup != null)
 						    item.transform.position = PlayerInput.Instance.transform.position; 
@@ -135,6 +137,7 @@ namespace Muck1337
 				 * spawns item in player's inventory or drops it if it's full
 				 */
 				case "item":
+				case "i":
 					// if the last element in cmd is an integer, then the count for the GetRange will be 'cmd.Count - 2'
 					// if not, the count will be 'cmd.Count - 1'
 					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out int itemAmount) ? 2 : 1))).ToLower();
@@ -184,6 +187,7 @@ namespace Muck1337
 				 * increments the stated powerup for the player by the given amount
 				 */
 				case "powerup":
+				case "pow":
 					int powerupAmount = 1;
 					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out powerupAmount) ? 2 : 1))).ToLower();
 
@@ -206,7 +210,6 @@ namespace Muck1337
 							{
 								powerups[powerupPair.Value]++;
 								PrivateFinder.SetValue<int[]>(PowerupInventory.Instance, "powerups", powerups);
-								UiEvents.Instance.AddPowerup(ItemManager.Instance.allPowerups[powerupPair.Value]);
 								PlayerStatus.Instance.UpdateStats();
 								PowerupUI.Instance.AddPowerup(powerupPair.Value);
 							}
@@ -219,6 +222,7 @@ namespace Muck1337
 				 * starts the boat rising & final boss event
 				 */
 				case "sail":
+				case "sl":
 					Boat.Instance.LeaveIsland();
 					return false;
 				
@@ -259,6 +263,7 @@ namespace Muck1337
 				 * kills all mobs
 				 */
 				case "killmobs":
+				case "mobs":
 					foreach (HitableMob hitableMob in Object.FindObjectsOfType<HitableMob>())
 					{
 						hitableMob.Hit(int.MaxValue, int.MaxValue, (int)HitEffect.Normal, hitableMob.mob.transform.position);
