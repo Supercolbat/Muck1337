@@ -9,9 +9,9 @@ namespace Muck1337
     [HarmonyPatch(typeof(Commands))]
     class CommandsPatches
     {
-        private static void SetSuggestedText(object instance, string command, string text)
+        private static void SetSuggestedText(object instance, string command, string input, string completion)
         {
-            PrivateFinder.SetValue<string>(instance, "suggestedText", command + " " + text);
+            PrivateFinder.SetValue<string>(instance, "suggestedText", "/" + command + " " + input + completion.Substring(input.Length));
         }
         
         [HarmonyPatch("PredictCommands")]
@@ -19,7 +19,7 @@ namespace Muck1337
         static void PredictCommands_Postfix(Commands __instance)
         {
             string text = __instance.inputField.text;
-            string[] cmds = text.Split(' ');
+            string[] cmds = text.Substring(1).Split(' ');
             string joinedCmdRegular = string.Join(" ", cmds.Skip(1));
             string joinedCmd = joinedCmdRegular.ToLower();
             
@@ -31,13 +31,13 @@ namespace Muck1337
                 /*
                  * /tp <username> 
                  */
-                case "/tp":
+                case "tp":
                     foreach (Client client in Server.clients.Values)
                     {
                         if (client != null && client.player != null && client.player.username.ToLower()
                             .Contains(joinedCmd))
                         {
-                            SetSuggestedText(__instance, cmds[0], client.player.username);
+                            SetSuggestedText(__instance, cmds[0], joinedCmd, client.player.username);
                             break;
                         }
                     }
@@ -47,10 +47,11 @@ namespace Muck1337
                 /*
                  * /pickup [items, powerups] 
                  */
-                case "/pickup":
+                case "pickup":
+                case "pick":
                     foreach (string pickupOption in new string[] {"items", "powerups"})
                         if (pickupOption.Contains(joinedCmd))
-                            SetSuggestedText(__instance, cmds[0], pickupOption);
+                            SetSuggestedText(__instance, cmds[0], joinedCmd, pickupOption);
                     
                     break;
 				
@@ -58,9 +59,10 @@ namespace Muck1337
 				 * /item <item name>
 				 */
 				case "item":
+                case "i":
                     foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
                         if (inventoryItem.name.ToLower().Contains(joinedCmd))
-                            SetSuggestedText(__instance, cmds[0], inventoryItem.name);
+                            SetSuggestedText(__instance, cmds[0], joinedCmd, inventoryItem.name);
 
                     break;
 				
@@ -68,9 +70,10 @@ namespace Muck1337
                  * /powerup <powerup name>
                  */
                 case "powerup":
+                case "pow":
                     foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
                         if (powerupPair.Key.ToLower().Contains(joinedCmd))
-                            SetSuggestedText(__instance, cmds[0], powerupPair.Key);
+                            SetSuggestedText(__instance, cmds[0], joinedCmd, powerupPair.Key);
 
                     break;
             }
