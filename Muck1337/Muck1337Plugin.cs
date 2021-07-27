@@ -1,7 +1,6 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using Muck1337.Utils;
 
 namespace Muck1337
 {

@@ -7,8 +7,8 @@ namespace Muck1337
     [HarmonyPatch(typeof(PlayerInput))]
     class PlayerInputPatches
     {
-        private static Vector3 flightDirection;
-        private static float flightSpeed;
+        private static Vector3 _flightDirection;
+        private static float _flightSpeed;
     
         /*
          * =============
@@ -39,25 +39,25 @@ namespace Muck1337
             if (Input.GetKey(KeyCode.F))
             {
                 Transform camera = PrivateFinder.GetValue<Transform>(__instance, "playerCam").gameObject.transform;
-                flightDirection = Vector3.zero;
-                flightSpeed = 30f;
+                _flightDirection = Vector3.zero;
+                _flightSpeed = 30f;
                 
                 // Prevent the player from slowly falling downwards
                 PrivateFinder.GetValue<PlayerMovement>(__instance, "playerMovement").GetRb().velocity =
                     new Vector3(0f, 1f, 0f);
 
                 if (Input.GetKey(KeyCode.W))
-                    flightDirection += camera.forward;
+                    _flightDirection += camera.forward;
                 if (Input.GetKey(KeyCode.A))
-                    flightDirection += -camera.right;
+                    _flightDirection += -camera.right;
                 if (Input.GetKey(KeyCode.S))
-                    flightDirection += -camera.forward;
+                    _flightDirection += -camera.forward;
                 if (Input.GetKey(KeyCode.D))
-                    flightDirection += camera.right;
+                    _flightDirection += camera.right;
                 if (Input.GetKey(KeyCode.LeftShift))
-                    flightSpeed = 60f;
+                    _flightSpeed = 60f;
 
-                __instance.gameObject.transform.position += flightDirection * Time.deltaTime * flightSpeed;
+                __instance.gameObject.transform.position += _flightDirection * Time.deltaTime * _flightSpeed;
             }
         }
     }

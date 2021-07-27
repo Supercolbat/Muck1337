@@ -6,9 +6,9 @@ namespace Muck1337
     class PlayerStatusPatches
     {
         /*
-         * =========================
-         *  Godmode/Invulnerability
-         * =========================
+         * =================
+         *  Invulnerability
+         * =================
          * 
          * The HandleDamage method, quite obviously, handles the damage the player receives. We ignore
          * all the calculations for how much damage the player takes and only play the effects.
@@ -33,9 +33,9 @@ namespace Muck1337
         }
     
         /*
-         * ===================
-         *  Rapid health gain
-         * ===================
+         * ====================
+         *  Rapid health regen
+         * ====================
          *
          * In a hypothetical case, if you were to take any damage (despite being invulnerable), your health
          * will immediately go back to max when the heal method is called. Is this overkill? Yes.
@@ -49,9 +49,9 @@ namespace Muck1337
         }
     
         /*
-         * ===================
-         *  Rapid hunger gain
-         * ===================
+         * ====================
+         *  Rapid hunger regen
+         * ====================
          */
         [HarmonyPatch("Hunger")]
         [HarmonyPrefix]
@@ -62,9 +62,9 @@ namespace Muck1337
         }
     
         /*
-         * ====================
-         *  Rapid stamina gain
-         * ====================
+         * =====================
+         *  Rapid stamina regen
+         * =====================
          */
         [HarmonyPatch("Stamina")]
         [HarmonyPrefix]

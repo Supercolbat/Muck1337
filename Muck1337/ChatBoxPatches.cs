@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using HarmonyLib;
 using UnityEngine;
 using Muck1337.Utils;
@@ -27,7 +26,6 @@ namespace Muck1337
 			    "chests",
 			    "item",
 			    "powerup",
-			    //"powerupuser",
 			    "sail",
 			    "hell",
 			    "killmobs",
@@ -55,10 +53,6 @@ namespace Muck1337
 			
 			switch (cmd[0])
 			{
-				/*******************
-				 * Modded commands *
-				 *******************/
-				
 				/*
 				 * usage: /dupe
 				 * duplicate the player's whole inventory
@@ -140,9 +134,10 @@ namespace Muck1337
 				case "i":
 					// if the last element in cmd is an integer, then the count for the GetRange will be 'cmd.Count - 2'
 					// if not, the count will be 'cmd.Count - 1'
-					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out int itemAmount) ? 2 : 1))).ToLower();
-					if (itemAmount == 0)
-						itemAmount = 1;
+					bool itemAmountIsInt = int.TryParse(cmd[cmd.Count - 1], out int itemAmount);
+					if (!itemAmountIsInt) itemAmount = 1;
+					
+					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (itemAmountIsInt ? 2 : 1))).ToLower();
 
 					// cycle through all the defined items until one matches our query
 					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
@@ -188,8 +183,10 @@ namespace Muck1337
 				 */
 				case "powerup":
 				case "pow":
-					int powerupAmount = 1;
-					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (int.TryParse(cmd[cmd.Count - 1], out powerupAmount) ? 2 : 1))).ToLower();
+					bool powerupAmountIsInt = int.TryParse(cmd[cmd.Count - 1], out int powerupAmount);
+					if (!powerupAmountIsInt) itemAmount = 1;
+					
+					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (powerupAmountIsInt ? 2 : 1))).ToLower();
 
 					foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
 					{
@@ -301,14 +298,12 @@ namespace Muck1337
 					}), "Muck1337");
 					return false;
 				
+				/*
+				 * usage: /test
+				 * yes
+				 */
+				
 				case "test":
-					foreach (Client client in Server.clients.Values)
-					{
-						if (client.id != LocalClient.instance.myId)
-						{
-							client.Disconnect();
-						}
-					}
 					return false;
 			}
 

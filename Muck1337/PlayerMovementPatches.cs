@@ -24,7 +24,7 @@ namespace Muck1337
             __instance.CancelInvoke("JumpCooldown");
             __instance.Invoke("JumpCooldown", 0.25f);
             ___resetJumpCounter = 0;
-            float d = ___jumpForce * PowerupInventory.Instance.GetJumpMultiplier(null);
+            float d = ___jumpForce * PowerupInventory.Instance.GetJumpMultiplier();
             ___rb.AddForce(Vector3.up * d * 1.5f, ForceMode.Impulse);
             ___rb.AddForce(___normalVector * d * 0.5f, ForceMode.Impulse);
             Vector3 velocity = ___rb.velocity;

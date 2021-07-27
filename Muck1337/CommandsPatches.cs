@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -49,7 +48,7 @@ namespace Muck1337
                  */
                 case "pickup":
                 case "pick":
-                    foreach (string pickupOption in new string[] {"items", "powerups"})
+                    foreach (string pickupOption in new [] {"items", "powerups"})
                         if (pickupOption.Contains(joinedCmd))
                             SetSuggestedText(__instance, cmds[0], joinedCmd, pickupOption);
                     
