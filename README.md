@@ -6,8 +6,6 @@
 
 Muck1337 is a utility mod for the game [Muck](https://store.steampowered.com/app/1625450/Muck/), a game made by [Dani](https://store.steampowered.com/search/?developer=Dani)[Dev](https://www.youtube.com/channel/UCIabPXjvT5BVTxRDPCBBOOQ).
 
-**Currently not updated for Muck v4. Please be patient!**
-
 ## :package: Installation
 Before downloading the mod, you first need to set up BepInEx. This process is well documented on the [BepInEx wiki](https://docs.bepinex.dev/master/articles/user_guide/installation/unity_mono.html).
 
