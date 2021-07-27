@@ -34,7 +34,7 @@ namespace Muck1337
                     foreach (Client client in Server.clients.Values)
                     {
                         if (client != null && client.player != null && client.player.username.ToLower()
-                            .Contains(joinedCmd))
+                            .StartsWith(joinedCmd))
                         {
                             SetSuggestedText(__instance, cmds[0], joinedCmd, client.player.username);
                             break;
@@ -49,7 +49,7 @@ namespace Muck1337
                 case "pickup":
                 case "pick":
                     foreach (string pickupOption in new [] {"items", "powerups"})
-                        if (pickupOption.Contains(joinedCmd))
+                        if (pickupOption.StartsWith(joinedCmd))
                             SetSuggestedText(__instance, cmds[0], joinedCmd, pickupOption);
                     
                     break;
@@ -60,7 +60,7 @@ namespace Muck1337
 				case "item":
                 case "i":
                     foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
-                        if (inventoryItem.name.ToLower().Contains(joinedCmd))
+                        if (inventoryItem.name.ToLower().StartsWith(joinedCmd))
                             SetSuggestedText(__instance, cmds[0], joinedCmd, inventoryItem.name);
 
                     break;
@@ -71,7 +71,7 @@ namespace Muck1337
                 case "powerup":
                 case "pow":
                     foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
-                        if (powerupPair.Key.ToLower().Contains(joinedCmd))
+                        if (powerupPair.Key.ToLower().StartsWith(joinedCmd))
                             SetSuggestedText(__instance, cmds[0], joinedCmd, powerupPair.Key);
 
                     break;
