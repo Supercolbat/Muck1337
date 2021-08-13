@@ -39,9 +39,7 @@ namespace Muck1337.Patches
 		{
 			// original code
 			if (message.Length <= 0)
-			{
 				return;
-			}
 			
 			var cmd = new List<string>(message.Substring(1).Split(' '));
 			
@@ -55,7 +53,7 @@ namespace Muck1337.Patches
 				return;
 			
 			// Call the command and skip the original method
-			CommandManager.Commands[trueCommandName].Callback(cmd.GetRange(1, cmd.Count).ToArray());
+			CommandManager.Commands[trueCommandName].Callback(cmd.GetRange(1, cmd.Count - 1).ToArray());
 		}
 
 		public static void InitCommands()
@@ -100,7 +98,7 @@ namespace Muck1337.Patches
 					}
 				}
 				ChatBox.Instance.AppendMessage(-1, "<color=red>Could not find a player by the username of '" + targetUsername + "'<color=white>", "Muck1337");
-			}, null, delegate(string text)
+			}, prediction: delegate(string text)
 			{
 				foreach (Client client in Server.clients.Values)
 				{
@@ -127,18 +125,33 @@ namespace Muck1337.Patches
 					
 				foreach (Item item in UnityEngine.Object.FindObjectsOfType<Item>())
 				{
-					if (args[0] == "items" && item.powerup == null)
-						item.transform.position = PlayerInput.Instance.transform.position;
-					else if (args[0] == "powerups" && item.powerup != null)
-						item.transform.position = PlayerInput.Instance.transform.position;
-					else
-						item.transform.position = PlayerInput.Instance.transform.position;
+					switch (args[0])
+					{
+						case "items":
+							if (item.powerup == null)
+								item.transform.position = PlayerInput.Instance.transform.position;
+							break;
+						
+						case "powerups":
+							if (item.powerup != null)
+								item.transform.position = PlayerInput.Instance.transform.position;
+							break;
+						
+						default:
+							item.transform.position = PlayerInput.Instance.transform.position;
+							break;
+							
+					}
 				}
 			}, new []{"pick"}, delegate(string text)
 			{
 				foreach (string pickupOption in new [] {"items", "powerups"})
+				{
 					if (pickupOption.StartsWith(text))
+					{
 						return pickupOption;
+					}
+				}
 				
 				return "";
 			});
@@ -202,15 +215,19 @@ namespace Muck1337.Patches
 							}
 						}
 							
-						// Update the hotbar so the item shows
+						// Update the hotbar so the item shows if in hotbar
 						InventoryUI.Instance.hotbar.UpdateHotbar();
 					}
 				}
 			}, new []{"i"}, delegate(string text)
 			{
-				foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values) 
+				foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
+				{
 					if (inventoryItem.name.ToLower().StartsWith(text))
+					{
 						return inventoryItem.name;
+					}
+				}
 				return "";
 			});
 			
@@ -256,8 +273,12 @@ namespace Muck1337.Patches
 			}, new []{"pow"}, delegate(string text)
 			{
 				foreach (var powerupPair in ItemManager.Instance.stringToPowerupId)
+				{
 					if (powerupPair.Key.ToLower().StartsWith(text))
+					{
 						return powerupPair.Key;
+					}
+				}
 				return "";
 			});
 			
@@ -283,7 +304,7 @@ namespace Muck1337.Patches
 
 				if (bossShrines.Length == 0 && guardianShrines.Length == 0 && combatShrines.Length == 0)
 				{
-					ChatBox.Instance.AppendMessage(-1, "<color=red>Hell has already been unleashed!<color=white>", "Muck1337");
+					ChatBox.Instance.AppendMessage(-1, "<color=red>Hell has already been unleashed :(<color=white>", "Muck1337");
 					return;
 				}
 				

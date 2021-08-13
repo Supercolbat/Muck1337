@@ -34,9 +34,10 @@ namespace Muck1337.Utils
             
             // Create prediction command if null
             if (prediction == null)
+                // create a function that returns name
                 prediction = s => name;
             
-            // Create a new command object and add to commands
+            // Create a new Command object and add to Commands
             Commands[name] = new Muck1337Command(callback, prediction);
         }
     }
