@@ -1,6 +1,6 @@
 using HarmonyLib;
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
     [HarmonyPatch(typeof(AchievementManager))]
     class AchievementsManagerPatches

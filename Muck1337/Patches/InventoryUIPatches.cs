@@ -1,8 +1,7 @@
 using HarmonyLib;
-using JetBrains.Annotations;
 using UnityEngine.EventSystems;
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
     [HarmonyPatch(typeof(InventoryUI))]
     class InventoryUIPatches
@@ -29,7 +28,7 @@ namespace Muck1337
          */
         [HarmonyPatch("DropItem")]
         [HarmonyPrefix]
-        static bool DropItem_Prefix(InventoryUI __instance, [CanBeNull] PointerEventData eventData)
+        static bool DropItem_Prefix(InventoryUI __instance, PointerEventData eventData)
         {
             if (__instance.currentMouseItem == null)
                 return false;

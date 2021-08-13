@@ -16,7 +16,7 @@ namespace Muck1337.Utils
             return (T)Traverse.Create(instance).Field(fieldName).GetValue();
         }
 
-        public static void SetValue<T>(object instance, string fieldName, object value)
+        public static void SetValue(object instance, string fieldName, object value)
         {
             // Thank you to @funnynumber#3171 for the good code
             Traverse.Create(instance).Field(fieldName).SetValue(value);
@@ -28,11 +28,11 @@ namespace Muck1337.Utils
          * https://stackoverflow.com/a/135482
          */
 
-        public static void CallMethod(object instance, string methodName, object[] parameters=null)  // Array.Empty<object>() instead of null?
+        public static void CallMethod(object instance, string methodName, object[] parameters=null)
         {
             MethodInfo method = instance.GetType().GetMethod(methodName, 
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(instance, parameters);
+            method?.Invoke(instance, parameters);
         }
     }
 }

@@ -1,6 +1,6 @@
 using HarmonyLib;    
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
     [HarmonyPatch(typeof(PlayerStatus))]
     class PlayerStatusPatches
@@ -81,7 +81,7 @@ namespace Muck1337
          */
         [HarmonyPatch("Jump")]
         [HarmonyPrefix]
-        static bool Jump_Prefix(PlayerStatus __instance)
+        static bool Jump_Prefix()
         {
             return false;
         }

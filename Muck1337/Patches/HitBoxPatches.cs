@@ -1,6 +1,8 @@
+/*
+using System.Collections.Generic;
 using HarmonyLib;
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
     [HarmonyPatch(typeof(HitBox))]
     class HitBoxPatches
@@ -12,13 +14,18 @@ namespace Muck1337
          * ==========================
          * 
          * There has to be a better way of doing this than completely overriding the whole method...
+         * EDIT: Transpilers!! 
          * /
         [HarmonyPatch("UseHitbox")]
-        [HarmonyPrefix]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            // do something
+        }
         static bool UseHitbox_Prefix(HitBox __instance)
         {
             return false;
         }
-        */
     }
 }
+*/

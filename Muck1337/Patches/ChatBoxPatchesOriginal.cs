@@ -1,24 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using HarmonyLib;
 using UnityEngine;
 using Muck1337.Utils;
+using Object = UnityEngine.Object;
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
-    [HarmonyPatch(typeof(ChatBox))]
-    class ChatBox_Patches
+    //H: [HarmonyPatch(typeof(ChatBox))]
+    class ChatBox_Patches_Original
     {
 	    /*
 	     * =================================
 	     *  Add commands to prediction list
 	     * =================================
 	     */
-	    [HarmonyPatch("Awake")]
-	    [HarmonyPostfix]
+	    //H: [HarmonyPatch("Awake")]
+	    //H: [HarmonyPostfix]
 	    static void Awake_Postfix(ChatBox __instance)
 	    {
-		    __instance.commands = __instance.commands.Concat(new string[]
+		    // CommandManager.AddCommand("yes", delegate(string[] args) { Console.WriteLine(string.Join(" ", args)); });
+		    
+		    // __instance.commands = __instance.commands.Concat(CommandManager.commands.Keys).ToArray();
+		    __instance.commands = __instance.commands.Concat(new []
 		    {
 			    "dupe",
 			    "tp",
@@ -29,6 +33,7 @@ namespace Muck1337
 			    "sail",
 			    "hell",
 			    "killmobs",
+			    "destroy"
 		    }).ToArray();
 	    }
 	    
@@ -37,8 +42,8 @@ namespace Muck1337
 	     *  Chat Commands
 	     * ===============
          */
-        [HarmonyPatch("ChatCommand")]
-        [HarmonyPrefix]
+	    //H: [HarmonyPatch("ChatCommand")]
+	    //H: [HarmonyPrefix]
 		static bool ChatCommand_Prefix(ChatBox __instance, string message)
 		{
 			if (message.Length <= 0)
@@ -47,9 +52,11 @@ namespace Muck1337
 			}
 			
 			string colorConsole = "#" + ColorUtility.ToHtmlStringRGB(PrivateFinder.GetValue<Color>(__instance, "console"));;
-			List<string> cmd = new List<string>(message.Substring(1).Split(' '));
+			var cmd = new List<string>(message.Substring(1).Split(' '));
 			
 			PrivateFinder.CallMethod(__instance, "ClearMessage");
+			
+			// CommandManager.commands[cmd[0]].callback(cmd.GetRange(1, cmd.Count).ToArray());
 			
 			switch (cmd[0])
 			{
@@ -74,7 +81,7 @@ namespace Muck1337
 				 * teleport to a player
 				 */
 				case "tp":
-					string targetUsernameForTp = string.Join(" ", cmd.GetRange( 1, cmd.Count - 1)).ToLower();
+					string targetUsernameForTp = String.Join(" ", cmd.GetRange( 1, cmd.Count - 1)).ToLower();
 					
 					// loop through all the players connected to the server until one matches targetUsernameForTP
 					foreach (Client client in Server.clients.Values)
@@ -137,7 +144,7 @@ namespace Muck1337
 					bool itemAmountIsInt = int.TryParse(cmd[cmd.Count - 1], out int itemAmount);
 					if (!itemAmountIsInt) itemAmount = 1;
 					
-					string itemQuery = string.Join(" ", cmd.GetRange( 1, cmd.Count - (itemAmountIsInt ? 2 : 1))).ToLower();
+					string itemQuery = String.Join(" ", cmd.GetRange( 1, cmd.Count - (itemAmountIsInt ? 2 : 1))).ToLower();
 
 					// cycle through all the defined items until one matches our query
 					foreach (InventoryItem inventoryItem in ItemManager.Instance.allItems.Values)
@@ -173,6 +180,9 @@ namespace Muck1337
 									return false;
 								}
 							}
+							
+							// update the hotbar so the item shows
+							InventoryUI.Instance.hotbar.UpdateHotbar();
 						}
 					}
 					return false;
@@ -186,7 +196,7 @@ namespace Muck1337
 					bool powerupAmountIsInt = int.TryParse(cmd[cmd.Count - 1], out int powerupAmount);
 					if (!powerupAmountIsInt) itemAmount = 1;
 					
-					string powerupArg = string.Join(" ", cmd.GetRange( 1, cmd.Count - (powerupAmountIsInt ? 2 : 1))).ToLower();
+					string powerupArg = String.Join(" ", cmd.GetRange( 1, cmd.Count - (powerupAmountIsInt ? 2 : 1))).ToLower();
 
 					foreach (KeyValuePair<string, int> powerupPair in ItemManager.Instance.stringToPowerupId)
 					{
@@ -206,7 +216,7 @@ namespace Muck1337
 							for (int i = 0; i < powerupAmount; i++)
 							{
 								powerups[powerupPair.Value]++;
-								PrivateFinder.SetValue<int[]>(PowerupInventory.Instance, "powerups", powerups);
+								PrivateFinder.SetValue(PowerupInventory.Instance, "powerups", powerups);
 								PlayerStatus.Instance.UpdateStats();
 								PowerupUI.Instance.AddPowerup(powerupPair.Value);
 							}
@@ -220,7 +230,8 @@ namespace Muck1337
 				 */
 				case "sail":
 				case "sl":
-					Boat.Instance.LeaveIsland();
+					// Boat.Instance.LeaveIsland();
+					PrivateFinder.CallMethod(PrivateFinder.GetValue<FinishGameInteract>(Boat.Instance, "wheelInteract"), "Interact");
 					return false;
 				
 				/*
@@ -264,6 +275,19 @@ namespace Muck1337
 					foreach (HitableMob hitableMob in Object.FindObjectsOfType<HitableMob>())
 					{
 						hitableMob.Hit(int.MaxValue, int.MaxValue, (int)HitEffect.Normal, hitableMob.mob.transform.position);
+					}
+					return false;
+				
+				/*
+				 * usage: /destroy
+				 * destroys all materials
+				 */
+				case "destroy":
+				case "des":
+					object[] hitableResources = {GameObject.FindObjectsOfType<HitableRock>(), GameObject.FindObjectsOfType<HitableTree>()};
+					foreach (HitableResource hitableResource in hitableResources)
+					{
+						hitableResource.Hit(int.MaxValue, int.MaxValue, (int)HitEffect.Normal, hitableResource.transform.position, 1);
 					}
 					return false;
 				

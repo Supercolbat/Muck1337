@@ -2,7 +2,7 @@ using HarmonyLib;
 using Muck1337.Utils;
 using UnityEngine;
 
-namespace Muck1337
+namespace Muck1337.Patches
 {
     [HarmonyPatch(typeof(PlayerMovement))]
     class PlayerMovementPatches
@@ -36,12 +36,10 @@ namespace Muck1337
             {
                 ___rb.velocity = new Vector3(velocity.x, 0f, velocity.z);
             }
-            // NOTE: the '__instance.transform.position' in the line before was originally 'base.transform.position'
-            //       may or may not work
-            ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime = Object.Instantiate<GameObject>(__instance.playerJumpSmokeFx, PlayerInput.Instance.transform.position, Quaternion.LookRotation(Vector3.up)).GetComponent<ParticleSystem>().velocityOverLifetime;
+            ParticleSystem.VelocityOverLifetimeModule velocityOverLifetime = Object.Instantiate(__instance.playerJumpSmokeFx, PlayerInput.Instance.transform.position, Quaternion.LookRotation(Vector3.up)).GetComponent<ParticleSystem>().velocityOverLifetime;
             velocityOverLifetime.x = ___rb.velocity.x * 2f;
             velocityOverLifetime.z = ___rb.velocity.z * 2f;
-            PrivateFinder.CallMethod(PrivateFinder.GetValue<PlayerStatus>(__instance, "playerStatus"), "Jump");
+            PrivateFinder.CallMethod(PrivateFinder.GetValue<PlayerStatus>(__instance, "playerStatus"), "Jump");;
             
             return false;
         }
