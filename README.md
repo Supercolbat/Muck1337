@@ -37,14 +37,16 @@ From there, go inside the new `Muck1337` directory, and create a folder called `
 These DLLs can be found inside of Muck's game folder. Navigate to `Muck_Data/Managed/` to find the following DLLs.
 
 * `Assembly-CSharp.dll`
-* `UnityEngine.dll`
 * `UnityEngine.AudioModule.dll`
 * `UnityEngine.CoreModule.dll`
+* `UnityEngine.dll`
 * `UnityEngine.IMGUIModule.dll`
 * `UnityEngine.InputLegacyModule.dll`
 * `UnityEngine.ParticleSystemModule.dll`
 * `UnityEngine.PhysicsModule.dll`
 * `UnityEngine.UI.dll`
+* `UnityEngine.UnityWebRequestModule.dll`
+* `Unity.TextMeshPro.dll`
 
 **BepInEx DLLs**
 
